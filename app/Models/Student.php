@@ -12,12 +12,20 @@ class Student extends Model
     protected $fillable = [
         'user_id',
         'student_id',
+        'date_of_birth',
+        'gender',
+        'address',
+        'phone',
+        'parent_name',
+        'parent_phone',
+        'academic_year',
         'enrollment_date',
         'major',
         'class_level',
     ];
 
     protected $casts = [
+        'date_of_birth' => 'date',
         'enrollment_date' => 'date',
     ];
 

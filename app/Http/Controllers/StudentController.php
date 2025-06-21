@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -283,5 +285,168 @@ class StudentController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Display student dashboard
+     */
+    public function dashboard()
+    {
+        $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للطالب غير مكتمل');
+        }
+
+        return view('dashboard.student.index', compact('student'));
+    }
+
+    /**
+     * Display student's enrolled courses
+     */
+    public function myCourses()
+    {
+        $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للطالب غير مكتمل');
+        }
+
+        $enrollments = $student->enrollments()->with(['course.teacher.user'])->paginate(10);
+
+        return view('dashboard.student.my-courses', compact('student', 'enrollments'));
+    }
+
+    /**
+     * Display student's grades and GPA
+     */
+    public function myGrades()
+    {
+        $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للطالب غير مكتمل');
+        }
+
+        $completedEnrollments = $student->enrollments()
+            ->with(['course'])
+            ->where('status', 'completed')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $gpa = $completedEnrollments->whereNotNull('grade')->avg('grade') ?? 0;
+        $totalCredits = $completedEnrollments->sum('course.credit_hours') ?? 0;
+
+        return view('dashboard.student.my-grades', compact('student', 'completedEnrollments', 'gpa', 'totalCredits'));
+    }
+
+    /**
+     * Display available courses for registration
+     */
+    public function availableCourses()
+    {
+        $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للطالب غير مكتمل');
+        }
+
+        // Get courses student is not already enrolled in
+        $enrolledCourseIds = $student->enrollments()->pluck('course_id');
+        $availableCourses = Course::with(['teacher.user'])
+            ->whereNotIn('id', $enrolledCourseIds)
+            ->paginate(12);
+
+        return view('dashboard.student.available-courses', compact('student', 'availableCourses'));
+    }
+
+    /**
+     * Register for a new course
+     */
+    public function registerCourse(Request $request, Course $course)
+    {
+        $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للطالب غير مكتمل');
+        }
+
+        // Check if already enrolled
+        $existingEnrollment = $student->enrollments()->where('course_id', $course->id)->first();
+        if ($existingEnrollment) {
+            return redirect()->back()->with('error', 'أنت مسجل في هذه المادة بالفعل');
+        }
+
+        // Create enrollment
+        Enrollment::create([
+            'student_id' => $student->id,
+            'course_id' => $course->id,
+            'enrollment_date' => now(),
+            'status' => 'active'
+        ]);
+
+        return redirect()->route('student.my-courses')->with('success', 'تم التسجيل في المادة بنجاح');
+    }
+
+    /**
+     * Display student profile
+     */
+    public function profile()
+    {
+        $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للطالب غير مكتمل');
+        }
+
+        return view('dashboard.student.profile', compact('student'));
+    }
+
+    /**
+     * Update student profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للطالب غير مكتمل');
+        }
+
+        $request->validate([
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'parent_name' => 'nullable|string|max:100',
+            'parent_phone' => 'nullable|string|max:20',
+        ]);
+
+        $student->update([
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'parent_name' => $request->parent_name,
+            'parent_phone' => $request->parent_phone,
+        ]);
+
+        return redirect()->back()->with('success', 'تم تحديث الملف الشخصي بنجاح');
+    }
+
+    /**
+     * Withdraw from a course
+     */
+    public function withdrawCourse(Enrollment $enrollment)
+    {
+        $student = Auth::user()->student;
+
+        if (!$student || $enrollment->student_id !== $student->id) {
+            return redirect()->route('dashboard')->with('error', 'غير مصرح لك بهذا الإجراء');
+        }
+
+        if ($enrollment->status === 'completed') {
+            return redirect()->back()->with('error', 'لا يمكن الانسحاب من مادة مكتملة');
+        }
+
+        $enrollment->update(['status' => 'withdrawn']);
+
+        return redirect()->back()->with('success', 'تم الانسحاب من المادة بنجاح');
     }
 }

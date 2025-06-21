@@ -50,16 +50,32 @@
 													</div>
 												@endif
 
-												<form method="POST" action="{{ route('login') }}">
+												<form method="POST" action="{{ route('custom.login') }}">
 													@csrf
 
 													<div class="form-group text-right">
-														<label>{{ __('البريد الإلكتروني') }}</label>
+														<label><i class="fas fa-users" style="margin-left: 8px; color: #4e73df;"></i>{{ __('نوع المستخدم') }}</label>
+														<select id="user_type" name="user_type" class="form-control" required style="text-align: right; direction: rtl;">
+															<option value="">اختر نوع المستخدم</option>
+															<option value="admin" {{ old('user_type') == 'admin' ? 'selected' : '' }}>
+																🏢 إدارة / موظف
+															</option>
+															<option value="teacher" {{ old('user_type') == 'teacher' ? 'selected' : '' }}>
+																👨‍🏫 معلم
+															</option>
+															<option value="student" {{ old('user_type') == 'student' ? 'selected' : '' }}>
+																🎓 طالب
+															</option>
+														</select>
+													</div>
+
+													<div class="form-group text-right">
+														<label><i class="fas fa-envelope" style="margin-left: 8px; color: #4e73df;"></i>{{ __('البريد الإلكتروني') }}</label>
 														<input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="أدخل بريدك الإلكتروني" required autocomplete="email" autofocus style="text-align: right; direction: rtl;">
 													</div>
 
 													<div class="form-group text-right">
-														<label>{{ __('كلمة المرور') }}</label>
+														<label><i class="fas fa-lock" style="margin-left: 8px; color: #4e73df;"></i>{{ __('كلمة المرور') }}</label>
 														<input id="password" type="password" class="form-control" name="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password" style="text-align: right; direction: rtl;">
 													</div>
 
@@ -72,15 +88,15 @@
 														</div>
 													</div>
 
-													<button type="submit" class="btn btn-primary btn-block" style="background: linear-gradient(45deg, #4e73df, #224abe); border: none; padding: 12px; font-weight: bold;">{{ __('دخول إلى النظام') }}</button>
+													<button type="submit" class="btn btn-primary btn-block" id="loginBtn" style="background: linear-gradient(45deg, #4e73df, #224abe); border: none; padding: 12px; font-weight: bold;">
+														<i class="fas fa-sign-in-alt"></i> {{ __('دخول إلى النظام') }}
+													</button>
 
-													<div class="row row-xs mt-3">
-														<div class="col-sm-6">
-															<button type="button" class="btn btn-outline-primary btn-block" style="border-color: #4e73df; color: #4e73df;"><i class="fas fa-graduation-cap"></i> دخول المعلمين</button>
-														</div>
-														<div class="col-sm-6 mg-t-10 mg-sm-t-0">
-															<button type="button" class="btn btn-outline-success btn-block" style="border-color: #28a745; color: #28a745;"><i class="fas fa-user-graduate"></i> دخول الطلاب</button>
-														</div>
+													<div class="text-center mt-3">
+														<small style="color: #6c757d;">
+															<i class="fas fa-shield-alt" style="color: #28a745;"></i>
+															تسجيل دخول آمن ومحمي
+														</small>
 													</div>
 												</form>
 
@@ -109,4 +125,58 @@
 		</div>
 @endsection
 @section('js')
+<script>
+$(document).ready(function() {
+    // تغيير لون الزر حسب نوع المستخدم
+    $('#user_type').on('change', function() {
+        var userType = $(this).val();
+        var loginBtn = $('#loginBtn');
+        var form = $('form');
+
+        // إزالة الكلاسات السابقة
+        loginBtn.removeClass('btn-primary btn-success btn-warning');
+
+        if (userType === 'admin') {
+            loginBtn.addClass('btn-primary');
+            loginBtn.html('<i class="fas fa-shield-alt"></i> دخول الإدارة');
+            loginBtn.css('background', 'linear-gradient(45deg, #4e73df, #224abe)');
+        } else if (userType === 'teacher') {
+            loginBtn.addClass('btn-warning');
+            loginBtn.html('<i class="fas fa-graduation-cap"></i> دخول المعلم');
+            loginBtn.css('background', 'linear-gradient(45deg, #f6c23e, #dda20a)');
+        } else if (userType === 'student') {
+            loginBtn.addClass('btn-success');
+            loginBtn.html('<i class="fas fa-user-graduate"></i> دخول الطالب');
+            loginBtn.css('background', 'linear-gradient(45deg, #1cc88a, #13855c)');
+        } else {
+            loginBtn.addClass('btn-primary');
+            loginBtn.html('<i class="fas fa-sign-in-alt"></i> دخول إلى النظام');
+            loginBtn.css('background', 'linear-gradient(45deg, #4e73df, #224abe)');
+        }
+    });
+
+    // التحقق من صحة البيانات قبل الإرسال
+    $('form').on('submit', function(e) {
+        var userType = $('#user_type').val();
+        var email = $('#email').val();
+        var password = $('#password').val();
+
+        if (!userType) {
+            alert('يرجى اختيار نوع المستخدم');
+            e.preventDefault();
+            return false;
+        }
+
+        if (!email || !password) {
+            alert('يرجى ملء جميع الحقول المطلوبة');
+            e.preventDefault();
+            return false;
+        }
+
+        // إظهار loader
+        $('#loginBtn').html('<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...');
+        $('#loginBtn').prop('disabled', true);
+    });
+});
+</script>
 @endsection

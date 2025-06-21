@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -285,5 +287,151 @@ class TeacherController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Display teacher dashboard
+     */
+    public function dashboard()
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للمعلم غير مكتمل');
+        }
+
+        return view('dashboard.teacher.index', compact('teacher'));
+    }
+
+    /**
+     * Display teacher's courses
+     */
+    public function myCourses()
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للمعلم غير مكتمل');
+        }
+
+        $courses = $teacher->courses()->withCount('enrollments')->paginate(10);
+
+        return view('dashboard.teacher.my-courses', compact('teacher', 'courses'));
+    }
+
+    /**
+     * Display teacher's students
+     */
+    public function myStudents()
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للمعلم غير مكتمل');
+        }
+
+        $enrollments = Enrollment::with(['student.user', 'course'])
+            ->whereHas('course', function($query) use ($teacher) {
+                $query->where('teacher_id', $teacher->id);
+            })
+            ->paginate(15);
+
+        return view('dashboard.teacher.my-students', compact('teacher', 'enrollments'));
+    }
+
+    /**
+     * Display students for a specific course
+     */
+    public function courseStudents(Course $course)
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher || $course->teacher_id !== $teacher->id) {
+            return redirect()->route('dashboard')->with('error', 'غير مصرح لك بعرض هذه المادة');
+        }
+
+        $enrollments = $course->enrollments()->with(['student.user'])->paginate(15);
+
+        return view('dashboard.teacher.course-students', compact('teacher', 'course', 'enrollments'));
+    }
+
+    /**
+     * Display teacher profile
+     */
+    public function profile()
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للمعلم غير مكتمل');
+        }
+
+        return view('dashboard.teacher.profile', compact('teacher'));
+    }
+
+    /**
+     * Update teacher profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للمعلم غير مكتمل');
+        }
+
+        $request->validate([
+            'phone' => 'nullable|string|max:20',
+            'department' => 'nullable|string|max:100',
+            'specialization' => 'nullable|string|max:100',
+        ]);
+
+        $teacher->update([
+            'phone' => $request->phone,
+            'department' => $request->department,
+            'specialization' => $request->specialization,
+        ]);
+
+        return redirect()->back()->with('success', 'تم تحديث الملف الشخصي بنجاح');
+    }
+
+    /**
+     * Update student grade
+     */
+    public function updateGrade(Request $request, Enrollment $enrollment)
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher || $enrollment->course->teacher_id !== $teacher->id) {
+            return redirect()->route('dashboard')->with('error', 'غير مصرح لك بتعديل هذه الدرجة');
+        }
+
+        $request->validate([
+            'grade' => 'required|numeric|min:0|max:100',
+            'status' => 'required|in:active,completed,withdrawn'
+        ]);
+
+        $enrollment->update([
+            'grade' => $request->grade,
+            'status' => $request->status
+        ]);
+
+        return redirect()->back()->with('success', 'تم تحديث الدرجة بنجاح');
+    }
+
+    /**
+     * Browse all courses (for reference)
+     */
+    public function browseCourses()
+    {
+        $teacher = Auth::user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('dashboard')->with('error', 'الملف الشخصي للمعلم غير مكتمل');
+        }
+
+        $courses = Course::with(['teacher.user'])->paginate(12);
+
+        return view('dashboard.teacher.browse-courses', compact('teacher', 'courses'));
     }
 }
