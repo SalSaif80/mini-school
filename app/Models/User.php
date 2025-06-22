@@ -8,11 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -21,14 +23,9 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'email',
+        'username',
         'password',
-        'role',
-        'date_of_birth',
-        'gender',
-        'address',
-        'phone',
-        'hire_date',
+        'user_type',
     ];
 
     /**
@@ -41,28 +38,25 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    const TEACHER_ROLE = 'teacher';
-    const STUDENT_ROLE = 'student';
-    const ADMIN_ROLE = 'admin';
-    const SUPER_ADMIN_ROLE = 'super_admin';
+    const ADMIN = 'admin';
+    const TEACHER = 'teacher';
+    const STUDENT = 'student';
 
     public static function availableRoles(): array
     {
         return [
-            self::ADMIN_ROLE,
-            self::TEACHER_ROLE,
-            self::STUDENT_ROLE,
-            self::SUPER_ADMIN_ROLE,
+            self::ADMIN,
+            self::TEACHER,
+            self::STUDENT,
         ];
     }
 
      public static function roleLabels(): array
      {
          return [
-             self::ADMIN_ROLE => 'مدير',
-             self::TEACHER_ROLE => 'معلم',
-             self::STUDENT_ROLE => 'طالب',
-             self::SUPER_ADMIN_ROLE => 'مدير النظام',
+             self::ADMIN => 'مدير',
+             self::TEACHER => 'معلم',
+             self::STUDENT => 'طالب',
          ];
      }
 
@@ -74,9 +68,19 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Activity Log Configuration
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'username', 'user_type'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     /**
@@ -84,7 +88,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === self::ADMIN_ROLE;
+        return $this->user_type === self::ADMIN;
     }
 
     /**
@@ -92,7 +96,7 @@ class User extends Authenticatable
      */
     public function isTeacher(): bool
     {
-        return $this->role === self::TEACHER_ROLE;
+        return $this->user_type === self::TEACHER;
     }
 
     /**
@@ -100,7 +104,7 @@ class User extends Authenticatable
      */
     public function isStudent(): bool
     {
-        return $this->role === self::STUDENT_ROLE;
+        return $this->user_type === self::STUDENT;
     }
 
     /**
@@ -119,4 +123,27 @@ class User extends Authenticatable
         return $this->hasOne(Teacher::class);
     }
 
+    /**
+     * Teacher courses relationship
+     */
+    public function teacherCourses()
+    {
+        return $this->hasMany(Course::class, 'teacher_id');
+    }
+
+    /**
+     * Student enrollments relationship
+     */
+    public function studentEnrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'student_id');
+    }
+
+    /**
+     * Enrollments relationship (alias for studentEnrollments)
+     */
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'student_id');
+    }
 }

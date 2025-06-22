@@ -12,13 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('courses', function (Blueprint $table) {
-            $table->id();
-            $table->string('course_code')->unique();
-            $table->string('title');
-            $table->text('description');
-            $table->integer('credit_hours');
-            $table->foreignId('teacher_id')->constrained('teachers');
-            $table->enum('level', ['beginner', 'intermediate', 'advanced']);
+            $table->id('course_id');
+            $table->string('course_name');
+            $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
+            $table->dateTime('schedule_date');
+            $table->string('room_number');
             $table->timestamps();
         });
     }

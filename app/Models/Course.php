@@ -4,26 +4,44 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Course extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    protected $primaryKey = 'course_id';
 
     protected $fillable = [
-        'course_code',
-        'title',
-        'description',
-        'credit_hours',
+        'course_name',
         'teacher_id',
-        'level',
+        'schedule_date',
+        'room_number',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'schedule_date' => 'datetime',
+        ];
+    }
+
+    // Activity Log Configuration
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['course_name', 'teacher_id', 'schedule_date', 'room_number'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Teacher relationship
      */
     public function teacher()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(User::class, 'teacher_id');
     }
 
     /**
@@ -31,7 +49,7 @@ class Course extends Model
      */
     public function enrollments()
     {
-        return $this->hasMany(Enrollment::class);
+        return $this->hasMany(Enrollment::class, 'course_id');
     }
 
     /**
@@ -39,7 +57,7 @@ class Course extends Model
      */
     public function students()
     {
-        return $this->hasManyThrough(Student::class, Enrollment::class);
+        return $this->belongsToMany(User::class, 'enrollments', 'course_id', 'student_id');
     }
 
     /**
