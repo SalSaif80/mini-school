@@ -56,7 +56,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ route('dashboard') }}">
-                <i class="fas fa-school me-2"></i>مدرسة صغيرة
+                <i class="fas fa-school me-2"></i> &nbsp;مدرسة صغيرة
             </a>
 
             <div class="d-flex align-items-center">
@@ -68,7 +68,7 @@
                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                     @csrf
                     <button type="submit" class="btn btn-outline-light btn-sm">
-                        <i class="fas fa-sign-out-alt me-1"></i>خروج
+                        <i class="fas fa-sign-out-alt me-1"></i> &nbsp;خروج
                     </button>
                 </form>
             </div>

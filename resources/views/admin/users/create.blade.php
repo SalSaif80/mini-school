@@ -8,15 +8,15 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-user-plus me-2"></i>إضافة مستخدم جديد</h2>
+        <h2><i class="fas fa-user-plus me-2"></i> &nbsp;إضافة مستخدم جديد</h2>
         <a href="{{ route('admin.users') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-right me-2"></i>العودة للقائمة
+            <i class="fas fa-arrow-right me-2"></i> &nbsp;العودة للقائمة
         </a>
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>بيانات المستخدم الجديد</h5>
+            <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i> &nbsp;بيانات المستخدم الجديد</h5>
         </div>
         <div class="card-body">
             <form action="{{ route('admin.users.store') }}" method="POST">
@@ -72,15 +72,11 @@
                     <select class="form-select @error('user_type') is-invalid @enderror"
                             id="user_type" name="user_type" required>
                         <option value="">اختر نوع المستخدم</option>
-                        <option value="admin" {{ old('user_type') == 'admin' ? 'selected' : '' }}>
-                            <i class="fas fa-user-shield"></i> إدارة
-                        </option>
-                        <option value="teacher" {{ old('user_type') == 'teacher' ? 'selected' : '' }}>
-                            <i class="fas fa-chalkboard-teacher"></i> مدرس
-                        </option>
-                        <option value="student" {{ old('user_type') == 'student' ? 'selected' : '' }}>
-                            <i class="fas fa-user-graduate"></i> طالب
-                        </option>
+                        @foreach($user_types as $key => $label)
+                            <option value="{{ $key }}" {{ old('user_type') == $key ? 'selected' : '' }}>
+                                <i class="fas fa-user-shield"></i> &nbsp;{{ $label }}
+                            </option>
+                        @endforeach
                     </select>
                     @error('user_type')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -89,10 +85,10 @@
 
                 <div class="d-flex justify-content-end gap-2">
                     <a href="{{ route('admin.users') }}" class="btn btn-secondary">
-                        <i class="fas fa-times me-2"></i>إلغاء
+                        <i class="fas fa-times me-2"></i> &nbsp;إلغاء
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>حفظ المستخدم
+                        <i class="fas fa-save me-2"></i> &nbsp;حفظ المستخدم
                     </button>
                 </div>
             </form>

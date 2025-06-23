@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Spatie\Activitylog\Models\Activity;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Requests\Course\StoreCourseRequest;
+use App\Http\Requests\Course\UpdateCourseRequest;
+use Spatie\Permission\Models\Role;
+use App\Http\Requests\Enrollment\StoreEnrollmentRequest;
+use App\Http\Requests\Enrollment\UpdateEnrollmentRequest;
 
 class AdminController extends Controller
 {
@@ -25,7 +32,6 @@ class AdminController extends Controller
         ];
 
         $recent_activities = Activity::latest()->take(10)->get();
-
         return view('admin.dashboard', compact('stats', 'recent_activities'));
     }
 
@@ -33,23 +39,18 @@ class AdminController extends Controller
     public function users()
     {
         $users = User::paginate(10);
+
         return view('admin.users.index', compact('users'));
     }
 
     public function createUser()
     {
-        return view('admin.users.create');
+        $user_types = User::roleLabels();
+        return view('admin.users.create', compact('user_types'));
     }
 
-    public function storeUser(Request $request)
+    public function storeUser(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|unique:users|max:255',
-            'password' => 'required|string|min:6|confirmed',
-            'user_type' => 'required|in:admin,teacher,student',
-        ]);
-
         $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
@@ -72,15 +73,14 @@ class AdminController extends Controller
     public function showUser($id)
     {
         $user = User::findOrFail($id);
-
         // إحصائيات المستخدم
         $stats = [];
-        if ($user->user_type === 'teacher') {
+        if ($user->user_type === User::TEACHER) {
             $stats['courses'] = Course::where('teacher_id', $user->id)->count();
             $stats['students'] = Enrollment::whereHas('course', function($q) use ($user) {
                 $q->where('teacher_id', $user->id);
             })->distinct('student_id')->count();
-        } elseif ($user->user_type === 'student') {
+        } elseif ($user->user_type === User::STUDENT) {
             $stats['enrollments'] = Enrollment::where('student_id', $user->id)->count();
             $stats['completed'] = Enrollment::where('student_id', $user->id)
                 ->where('status', 'completed')->count();
@@ -92,24 +92,13 @@ class AdminController extends Controller
     public function editUser($id)
     {
         $user = User::findOrFail($id);
-        return view('admin.users.edit', compact('user'));
+        $user_types = User::roleLabels();
+        return view('admin.users.edit', compact('user', 'user_types'));
     }
 
-    public function updateUser(Request $request, $id)
+    public function updateUser(UpdateUserRequest $request, $id)
     {
         $user = User::findOrFail($id);
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('users')->ignore($user->id),
-            ],
-            'password' => 'nullable|string|min:6|confirmed',
-            'user_type' => 'required|in:admin,teacher,student',
-        ]);
 
         $userData = [
             'name' => $request->name,
@@ -163,30 +152,19 @@ class AdminController extends Controller
         $courses = Course::with('teacher')
             ->withCount('enrollments')
             ->paginate(10);
+
         return view('admin.courses.index', compact('courses'));
     }
 
     public function createCourse()
     {
-        $teachers = User::where('user_type', 'teacher')->get();
+        $teachers = User::where('user_type', User::TEACHER)->get();
         return view('admin.courses.create', compact('teachers'));
     }
 
-    public function storeCourse(Request $request)
+    public function storeCourse(StoreCourseRequest $request)
     {
-        $request->validate([
-            'course_name' => 'required|string|max:255',
-            'teacher_id' => 'required|exists:users,id',
-            'schedule_date' => 'required|date',
-            'room_number' => 'required|string|max:50',
-        ]);
-
-        $course = Course::create([
-            'course_name' => $request->course_name,
-            'teacher_id' => $request->teacher_id,
-            'schedule_date' => $request->schedule_date,
-            'room_number' => $request->room_number,
-        ]);
+        $course = Course::create($request->validated());
 
         activity()
             ->causedBy(Auth::user())
@@ -215,27 +193,15 @@ class AdminController extends Controller
     public function editCourse($id)
     {
         $course = Course::findOrFail($id);
-        $teachers = User::where('user_type', 'teacher')->get();
+        $teachers = User::where('user_type', User::TEACHER)->get();
         return view('admin.courses.edit', compact('course', 'teachers'));
     }
 
-    public function updateCourse(Request $request, $id)
+    public function updateCourse(UpdateCourseRequest $request, $id)
     {
         $course = Course::findOrFail($id);
 
-        $request->validate([
-            'course_name' => 'required|string|max:255',
-            'teacher_id' => 'required|exists:users,id',
-            'schedule_date' => 'required|date',
-            'room_number' => 'required|string|max:50',
-        ]);
-
-        $course->update([
-            'course_name' => $request->course_name,
-            'teacher_id' => $request->teacher_id,
-            'schedule_date' => $request->schedule_date,
-            'room_number' => $request->room_number,
-        ]);
+        $course->update($request->validated());
 
         activity()
             ->causedBy(Auth::user())
@@ -266,7 +232,6 @@ class AdminController extends Controller
     {
         $course = Course::with(['teacher', 'enrollments.student'])
             ->findOrFail($id);
-
         return view('admin.courses.students', compact('course'));
     }
 
@@ -310,19 +275,14 @@ class AdminController extends Controller
 
         // بيانات إضافية للفلاتر
         $courses = Course::with('teacher')->orderBy('course_name')->get();
-        $students = User::where('user_type', 'student')->orderBy('name')->get();
+        $students = User::where('user_type', User::STUDENT)->orderBy('name')->get();
         $semesters = Enrollment::distinct()->pluck('semester')->filter()->sort()->values();
-
         return view('admin.enrollments.index', compact('enrollments', 'stats', 'courses', 'students', 'semesters'));
     }
 
-    public function storeEnrollment(Request $request)
+    public function storeEnrollment(StoreEnrollmentRequest $request)
     {
-        $request->validate([
-            'student_id' => 'required|exists:users,id',
-            'course_id' => 'required|exists:courses,course_id',
-            'semester' => 'required|string|max:50',
-        ]);
+
 
         // التحقق من عدم وجود تسجيل مسبق
         $existingEnrollment = Enrollment::where('student_id', $request->student_id)
@@ -346,6 +306,7 @@ class AdminController extends Controller
 
         activity()
             ->causedBy(Auth::user())
+            ->performedOn($student)
             ->log("تم تسجيل الطالب {$student->name} في كورس {$course->course_name}");
 
         return redirect()->route('admin.enrollments')
@@ -357,7 +318,7 @@ class AdminController extends Controller
         $enrollment = Enrollment::with([
             'student.enrollments',
             'course.teacher',
-            'course.enrollments'
+            'course.enrollments',
         ])->findOrFail($id);
 
         return view('admin.enrollments.show', compact('enrollment'));
@@ -367,24 +328,14 @@ class AdminController extends Controller
     {
         $enrollment = Enrollment::with(['student', 'course'])->findOrFail($id);
         $courses = Course::with('teacher')->orderBy('course_name')->get();
-        $students = User::where('user_type', 'student')->orderBy('name')->get();
-
+        $students = User::where('user_type', 'student')->where('id', '=', $enrollment->student_id)->orderBy('name')->get();
         return view('admin.enrollments.edit', compact('enrollment', 'courses', 'students'));
     }
 
-    public function updateEnrollment(Request $request, $id)
+    public function updateEnrollment(UpdateEnrollmentRequest $request, $id)
     {
         $enrollment = Enrollment::findOrFail($id);
 
-        $request->validate([
-            'student_id' => 'required|exists:users,id',
-            'course_id' => 'required|exists:courses,course_id',
-            'semester' => 'required|string|max:50',
-            'status' => 'required|in:active,completed,failed,dropped',
-            'final_exam_grade' => 'nullable|numeric|min:0|max:100',
-        ]);
-
-        // التحقق من عدم وجود تسجيل مكرر (إذا تم تغيير الطالب أو الكورس)
         if ($request->student_id != $enrollment->student_id || $request->course_id != $enrollment->course_id) {
             $existingEnrollment = Enrollment::where('student_id', $request->student_id)
                 ->where('course_id', $request->course_id)
@@ -395,13 +346,6 @@ class AdminController extends Controller
                 return back()->with('error', 'الطالب مسجل في هذا الكورس مسبقاً');
             }
         }
-
-        $oldData = [
-            'student' => $enrollment->student->name,
-            'course' => $enrollment->course->course_name,
-            'status' => $enrollment->status,
-            'grade' => $enrollment->final_exam_grade
-        ];
 
         $enrollment->update([
             'student_id' => $request->student_id,
@@ -416,12 +360,13 @@ class AdminController extends Controller
             $enrollment->updateGradeAndStatus();
         }
 
-        $newStudent = User::find($request->student_id);
-        $newCourse = Course::find($request->course_id);
+        $newStudentData = User::find($request->student_id);
+        $newCourseData = Course::find($request->course_id);
 
         activity()
             ->causedBy(Auth::user())
-            ->log("تم تحديث تسجيل الطالب {$newStudent->name} في كورس {$newCourse->course_name}");
+            ->performedOn($newStudentData)
+            ->log("تم تحديث تسجيل الطالب {$newStudentData->name} في كورس {$newCourseData->course_name}");
 
         return redirect()->route('admin.enrollments')
             ->with('success', 'تم تحديث التسجيل بنجاح');
@@ -436,15 +381,145 @@ class AdminController extends Controller
 
         activity()
             ->causedBy(Auth::user())
+            ->performedOn($enrollment->student)
             ->log("تم حذف تسجيل الطالب {$userName} من كورس {$courseName}");
 
         return redirect()->route('admin.enrollments')
             ->with('success', 'تم حذف التسجيل بنجاح');
     }
 
-    public function activityLog()
+    public function activityLog(Request $request)
     {
-        $activities = Activity::latest()->paginate(20);
-        return view('admin.activity-log', compact('activities'));
+        $query = Activity::with(['causer', 'subject']);
+
+        // فلتر حسب المستخدم
+        if ($request->filled('causer_id')) {
+            $query->where('causer_id', $request->causer_id);
+        }
+
+        // فلتر حسب نوع النموذج
+        if ($request->filled('subject_type')) {
+            $query->where('subject_type', $request->subject_type);
+        }
+
+        // فلتر حسب نوع العملية (البحث في النص)
+        if ($request->filled('operation_type')) {
+            $operationMap = [
+                'create' => ['إنشاء', 'تم إنشاء', 'created'],
+                'update' => ['تحديث', 'تم تحديث', 'updated'],
+                'delete' => ['حذف', 'تم حذف', 'deleted'],
+                'login' => ['تسجيل الدخول', 'دخول'],
+                'logout' => ['تسجيل الخروج', 'خروج'],
+                'enroll' => ['تسجيل', 'تم تسجيل'],
+            ];
+
+            if (isset($operationMap[$request->operation_type])) {
+                $searchTerms = $operationMap[$request->operation_type];
+                $query->where(function($q) use ($searchTerms) {
+                    foreach ($searchTerms as $term) {
+                        $q->orWhere('description', 'like', '%' . $term . '%');
+                    }
+                });
+            }
+        }
+
+        // فلتر حسب التاريخ
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // البحث في النص
+        if ($request->filled('search')) {
+            $query->where('description', 'like', '%' . $request->search . '%');
+        }
+
+        // التصدير إلى Excel
+        if ($request->has('export') && $request->export === 'excel') {
+            return $this->exportActivitiesToExcel($query);
+        }
+
+        $activities = $query->latest()->paginate(20)->appends($request->query());
+
+        // البيانات المساعدة للفلاتر
+        $users = User::orderBy('name')->get();
+        $subjectTypes = Activity::distinct()
+            ->whereNotNull('subject_type')
+            ->pluck('subject_type')
+            ->map(function($type) {
+                return [
+                    'value' => $type,
+                    'label' => $this->getSubjectTypeLabel($type)
+                ];
+            });
+
+        // إحصائيات
+        $stats = [
+            'total' => Activity::count(),
+            'today' => Activity::whereDate('created_at', today())->count(),
+            'this_week' => Activity::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'this_month' => Activity::whereMonth('created_at', now()->month)->count(),
+        ];
+
+        return view('admin.activity-log', compact('activities', 'users', 'subjectTypes', 'stats'));
+    }
+
+    private function getSubjectTypeLabel($type)
+    {
+        $labels = [
+            'App\Models\User' => 'المستخدمين',
+            'App\Models\Course' => 'الكورسات',
+            'App\Models\Enrollment' => 'التسجيلات',
+        ];
+
+        return $labels[$type] ?? $type;
+    }
+
+    private function exportActivitiesToExcel($query)
+    {
+        $activities = $query->latest()->get();
+
+        $filename = 'activity_log_' . now()->format('Y_m_d_H_i_s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($activities) {
+            $file = fopen('php://output', 'w');
+
+            // إضافة BOM للـ UTF-8
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // كتابة العناوين
+            fputcsv($file, [
+                'الرقم',
+                'المستخدم',
+                'النوع',
+                'النشاط',
+                'التاريخ',
+                'الوقت'
+            ], ',', '"');
+
+            // كتابة البيانات
+            foreach ($activities as $index => $activity) {
+                fputcsv($file, [
+                    $index + 1,
+                    $activity->causer ? $activity->causer->name : 'نظام',
+                    $activity->subject_type ? $this->getSubjectTypeLabel($activity->subject_type) : 'عام',
+                    $activity->description,
+                    $activity->created_at->format('Y-m-d'),
+                    $activity->created_at->format('H:i:s')
+                ], ',', '"');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

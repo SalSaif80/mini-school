@@ -35,7 +35,7 @@
                                 <div class="mb-3">
                                     <label for="student_id" class="form-label">الطالب <span class="text-danger">*</span></label>
                                     <select class="form-select @error('student_id') is-invalid @enderror"
-                                            id="student_id" name="student_id" required>
+                                            id="student_id" name="student_id" required disabled>
                                         <option value="">اختر الطالب</option>
                                         @foreach($students as $student)
                                             <option value="{{ $student->id }}"
@@ -44,6 +44,7 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                    <input type="hidden" name="student_id" value="{{ $enrollment->student_id }}">
                                     @error('student_id')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

@@ -14,23 +14,13 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Dashboard route (redirects based on user type)
-Route::get('/dashboard-mini-school', [DashboardController::class, 'index'])
-    ->middleware('auth')
-    ->name('dashboard');
-
-// Legacy dashboard route for backward compatibility
-Route::get('/dashboard', function () {
-    $user = Auth::user();
-    if (!$user) {
-        return redirect()->route('login');
-    }
-    return UserRedirectHelper::redirectToDashboard($user);
-})->middleware('auth');
+Route::get('/dashboard-mini-school', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {

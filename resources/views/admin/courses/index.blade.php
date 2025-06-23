@@ -65,10 +65,16 @@
                                            class="btn btn-warning btn-sm" title="تعديل">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        @if($course->enrollments_count == 0)
                                         <button type="button" class="btn btn-danger btn-sm"
                                                 title="حذف" onclick="confirmDelete({{ $course->course_id }})">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        @else
+                                            <button disabled class="btn btn-danger btn-sm" title="لا يمكن حذف الكورس لأنه لديه طلاب">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -83,6 +89,7 @@
         </div>
     </div>
 
+    {{-- تم فصل المودال علشان ما يتكرر المودال لكل كورس--}}
     <!-- Modal لتأكيد الحذف -->
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog">

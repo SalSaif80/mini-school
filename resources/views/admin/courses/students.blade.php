@@ -116,6 +116,7 @@
 
                 <!-- ملخص الإحصائيات -->
                 <div class="row mt-4">
+                    <strong>الإحصائيات :</strong>
                     <div class="col-md-3">
                         <div class="text-center">
                             <h5 class="text-primary">{{ $course->enrollments->where('status', 'active')->count() }}</h5>

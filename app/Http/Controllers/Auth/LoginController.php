@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\UserRedirectHelper;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -16,43 +16,29 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
+        $request->authenticate();
+        $request->session()->regenerate();
 
-        $credentials = $request->only('username', 'password');
-
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-
-            /** @var User $user */
-            $user = Auth::user();
-            if ($user) {
-                activity()
-                    ->performedOn($user)
-                    ->log('User logged in');
-            }
-
-            $welcomeMessage = UserRedirectHelper::getWelcomeMessage($user);
-            return UserRedirectHelper::redirectToDashboard($user, $welcomeMessage);
+        $user = Auth::user();
+        if ($user instanceof User) {
+            activity()
+                ->performedOn($user)
+                ->log('تم تسجيل الدخول بنجاح');
         }
 
-        throw ValidationException::withMessages([
-            'username' => ['The provided credentials do not match our records.'],
-        ]);
+        $welcomeMessage = UserRedirectHelper::getWelcomeMessage($user);
+        return UserRedirectHelper::redirectToDashboard($user, $welcomeMessage);
     }
 
     public function logout(Request $request)
     {
-        /** @var User $user */
         $user = Auth::user();
-        if ($user) {
+        if ($user instanceof User) {
             activity()
                 ->performedOn($user)
-                ->log('User logged out');
+                ->log('تم تسجيل الخروج بنجاح');
         }
 
         Auth::logout();

@@ -56,9 +56,9 @@
                 <div class="col-md-3">
                     <label for="search" class="form-label">البحث</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="search" name="search"
+                        <input type="text" class="form-control rounded-0" id="search" name="search"
                                placeholder="اسم الطالب..." value="{{ request('search') }}">
-                        <button class="btn btn-outline-primary" type="submit">
+                        <button class="btn btn-outline-primary rounded-0" type="submit">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>

@@ -179,9 +179,6 @@ class Enrollment extends Model
         return 'F';
     }
 
-    /**
-     * Update grade and status based on final exam grade
-     */
     public function updateGradeAndStatus(): void
     {
         if ($this->final_exam_grade !== null) {

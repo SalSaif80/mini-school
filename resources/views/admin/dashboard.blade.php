@@ -73,7 +73,8 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>المستخدم</th>
+                                <th>من قام بالنشاط</th>
+                                <th>من وقع عليه النشاط</th>
                                 <th>النشاط</th>
                                 <th>التاريخ</th>
                             </tr>
@@ -89,9 +90,17 @@
                                             <span class="text-muted">غير محدد</span>
                                         @endif
                                     </td>
+                                    <td>
+                                        @if($activity->subject)
+                                            {{ $activity->subject->name }}
+                                            <small class="text-muted">({{ $activity->subject->user_type }})</small>
+                                        @else
+                                            <span class="text-muted">غير محدد</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $activity->description }}</td>
-                                    <td>{{ $activity->created_at->diffForHumans() }}</td>
-                                </tr>
+                                    <td>{{ $activity->created_at->diffForHumans(['locale' => 'ar']) }}</td>
+                                    </tr>
                             @endforeach
                         </tbody>
                     </table>

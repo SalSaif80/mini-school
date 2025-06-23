@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -40,11 +40,10 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'خطأ في البريد الإلكتروني أو كلمة المرور',
-            'email.string' => 'خطأ في البريد الإلكتروني أو كلمة المرور',
-            'email.email' => 'خطأ في البريد الإلكتروني أو كلمة المرور',
-            'password.required' => 'خطأ في البريد الإلكتروني أو كلمة المرور',
-            'password.string' => 'خطأ في البريد الإلكتروني أو كلمة المرور',
+            'username.required' => 'الاسم المستخدم أو كلمة المرور غير صحيحة',
+            'username.string' => 'الاسم المستخدم أو كلمة المرور غير صحيحة',
+            'password.required' => 'الاسم المستخدم أو كلمة المرور غير صحيحة',
+            'password.string' => 'الاسم المستخدم أو كلمة المرور غير صحيحة',
         ];
     }
 
@@ -57,11 +56,11 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        if (!Auth::attempt($this->only('username', 'password'))) {
+            $this->incrementRateLimit();
 
             throw ValidationException::withMessages([
-                'email' => 'خطأ في البريد الإلكتروني أو كلمة المرور',
+                'username' => ['الاسم المستخدم أو كلمة المرور غير صحيحة'],
             ]);
         }
 
@@ -75,7 +74,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 2)) {
             return;
         }
 
@@ -84,8 +83,16 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => 'خطأ في البريد الإلكتروني أو كلمة المرور - محاولات كثيرة، يرجى المحاولة مرة أخرى خلال ' . ceil($seconds / 60) . ' دقيقة',
+            'username' => ['تم حظر محاولات الدخول مؤقتًا بسبب عدد المحاولات الفاشلة. حاول مجددًا بعد ' . $seconds . ' ثانية.'],
         ]);
+    }
+
+    /**
+     * Increment the rate limiting for the request.
+     */
+    public function incrementRateLimit(): void
+    {
+        RateLimiter::hit($this->throttleKey(), 60);
     }
 
     /**
@@ -93,6 +100,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('username')) . '|' . $this->ip());
     }
 }

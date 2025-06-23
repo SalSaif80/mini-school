@@ -141,7 +141,7 @@
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
-                                    <td>{{ $enrollment->updated_at->diffForHumans() }}</td>
+                                    <td>{{ $enrollment->updated_at->diffForHumans(['locale' => 'ar']) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

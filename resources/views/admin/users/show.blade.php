@@ -8,13 +8,13 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-user me-2"></i>تفاصيل المستخدم: {{ $user->name }}</h2>
+        <h2><i class="fas fa-user me-2"></i> &nbsp;تفاصيل المستخدم: {{ $user->name }}</h2>
         <div>
             <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-warning me-2">
-                <i class="fas fa-edit me-2"></i>تعديل
+                <i class="fas fa-edit me-2"></i> &nbsp;تعديل
             </a>
             <a href="{{ route('admin.users') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-right me-2"></i>العودة للقائمة
+                <i class="fas fa-arrow-right me-2"></i> &nbsp;العودة للقائمة
             </a>
         </div>
     </div>
@@ -24,24 +24,24 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>البيانات الأساسية</h5>
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i> &nbsp;البيانات الأساسية</h5>
                 </div>
                 <div class="card-body">
                     <table class="table table-borderless">
                         <tr>
-                            <td><strong>الرقم:</strong></td>
+                            <td><strong>الرقم:</strong> &nbsp;</td>
                             <td>{{ $user->id }}</td>
                         </tr>
                         <tr>
-                            <td><strong>الاسم الكامل:</strong></td>
+                            <td><strong>الاسم الكامل:</strong> &nbsp;</td>
                             <td>{{ $user->name }}</td>
                         </tr>
                         <tr>
-                            <td><strong>اسم المستخدم:</strong></td>
+                            <td><strong>اسم المستخدم:</strong> &nbsp;</td>
                             <td>{{ $user->username }}</td>
                         </tr>
                         <tr>
-                            <td><strong>نوع المستخدم:</strong></td>
+                            <td><strong>نوع المستخدم:</strong> &nbsp;</td>
                             <td>
                                 <span class="badge
                                     @if($user->user_type == 'admin') bg-danger
@@ -78,7 +78,7 @@
                     <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>الإحصائيات</h5>
                 </div>
                 <div class="card-body">
-                    @if($user->user_type === 'teacher')
+                    @if($user->user_type === \App\Models\User::TEACHER)
                         <div class="row text-center">
                             <div class="col-6">
                                 <div class="stats-card bg-primary text-white p-3 rounded">
@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                         </div>
-                    @elseif($user->user_type === 'student')
+                    @elseif($user->user_type === \App\Models\User::STUDENT)
                         <div class="row text-center">
                             <div class="col-6">
                                 <div class="stats-card bg-info text-white p-3 rounded">
