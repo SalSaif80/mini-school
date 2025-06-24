@@ -12,8 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Clean activity log daily at 1 AM
-        $schedule->command('activitylog:clean')->daily();
+        // Schedule commands are defined in routes/console.php
     }
 
     /**
