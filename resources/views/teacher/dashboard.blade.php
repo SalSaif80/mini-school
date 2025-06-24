@@ -31,7 +31,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <div class="stats-card" style="background: linear-gradient(135deg, #28a76c 0%, rgba(32, 201, 150, 0.856) 100%);">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h3>{{ $stats['total_students'] }}</h3>

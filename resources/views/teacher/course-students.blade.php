@@ -36,15 +36,15 @@
                     <strong>الغرفة:</strong> {{ $course->room_number }}
                 </div>
                 <div class="col-md-2">
-                    <strong>عدد الطلاب:</strong> {{ $enrollments->count() }}
+                    <strong>عدد الطلاب:</strong> {{ $course->enrollments->count() }}
                 </div>
                 <div class="col-md-2">
                     <strong>الملفات المرفوعة:</strong>
-                    <span class="badge bg-info">{{ $enrollments->whereNotNull('exam_file_path')->count() }}</span>
+                    <span class="badge bg-info">{{ $course->enrollments->whereNotNull('exam_file_path')->count() }}</span>
                 </div>
                 <div class="col-md-2">
                     <strong>تم التقييم:</strong>
-                    <span class="badge bg-success">{{ $enrollments->whereNotNull('final_exam_grade')->count() }}</span>
+                    <span class="badge bg-success">{{ $course->enrollments->whereNotNull('final_exam_grade')->count() }}</span>
                 </div>
             </div>
         </div>
@@ -56,9 +56,9 @@
             <h5 class="mb-0"><i class="fas fa-list me-2"></i>قائمة الطلاب والدرجات</h5>
         </div>
         <div class="card-body">
-            @if($enrollments->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-striped">
+            @if($course->enrollments->count() > 0)
+                <div class="table">
+                    <table class="table table-bordered table-striped table-hover ">
                         <thead>
                             <tr>
                                 <th>اسم الطالب</th>
@@ -67,11 +67,11 @@
                                 <th>ملف الاختبار</th>
                                 <th>درجة الاختبار النهائي</th>
                                 <th>الدرجة الحرفية</th>
-                                <th>الإجراءات</th>
+                                {{-- <th>الإجراءات</th> --}}
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($enrollments as $enrollment)
+                            @foreach($course->enrollments as $enrollment)
                                 <tr>
                                     <td>
                                         <strong>{{ $enrollment->student->name }}</strong>

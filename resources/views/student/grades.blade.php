@@ -59,12 +59,12 @@
                                     </td>
                                     <td>
                                         <span class="badge
-                                            @if($enrollment->status == 'completed') bg-primary
-                                            @elseif($enrollment->status == 'active') bg-warning
+                                            @if($enrollment->status == \App\Models\Enrollment::STATUS_COMPLETED) bg-primary
+                                            @elseif($enrollment->status == \App\Models\Enrollment::STATUS_ACTIVE) bg-warning
                                             @else bg-danger
                                             @endif">
-                                            @if($enrollment->status == 'completed') مكتمل
-                                            @elseif($enrollment->status == 'active') قيد الدراسة
+                                            @if($enrollment->status == \App\Models\Enrollment::STATUS_COMPLETED) مكتمل
+                                            @elseif($enrollment->status == \App\Models\Enrollment::STATUS_ACTIVE) قيد الدراسة
                                             @else مسحوب
                                             @endif
                                         </span>
