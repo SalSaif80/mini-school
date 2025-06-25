@@ -12,7 +12,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Schedule commands are defined in routes/console.php
+        // Send logs to LogVault every hour
+        $schedule->command('logs:send-to-vault')->hourly();
+
     }
 
     /**

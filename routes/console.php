@@ -9,4 +9,9 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-Schedule::command('activitylog:clean')->monthly();
+// Scheduled tasks are defined in app/Console/Kernel.php
+Schedule::command('logs:send-to-vault')->everyMinute(); // معطل حتى إصلاح التوكن
+
+// Clean old activity logs monthly
+// Schedule::command('activitylog:clean')->monthly();
+Schedule::command('activitylog:clean')->everyMinute();

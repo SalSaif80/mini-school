@@ -54,6 +54,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/enrollments/{id}', [AdminController::class, 'deleteEnrollment'])->name('enrollments.destroy');
 
     Route::get('/activity-log', [AdminController::class, 'activityLog'])->name('activity-log');
+
+    // Redirect projects to courses (since projects don't exist)
+    Route::get('/projects', function() {
+        return redirect()->route('admin.courses')->with('info', 'تم توجيهك إلى إدارة الكورسات');
+    });
 });
 
 // Teacher routes
