@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('completion_date')->nullable();
             $table->string('semester');
             $table->enum('grade', ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F'])->nullable();
-            $table->enum('status', ['active', 'completed', 'dropped'])->default('active');
+            $table->enum('status', ['active', 'completed', 'dropped', 'failed'])->default('active');
             $table->timestamps();
         });
     }
