@@ -13,5 +13,4 @@ Artisan::command('inspire', function () {
 Schedule::command('logs:send-to-vault')->everyMinute(); // معطل حتى إصلاح التوكن
 
 // Clean old activity logs monthly
-// Schedule::command('activitylog:clean')->monthly();
-Schedule::command('activitylog:clean')->everyMinute();
+Schedule::command('activitylog:clean')->monthly();

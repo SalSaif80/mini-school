@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Auth;
 
 class Enrollment extends Model
 {
@@ -49,6 +51,26 @@ class Enrollment extends Model
             ->logOnly(['student_id', 'course_id', 'enrollment_date', 'completion_date', 'semester', 'grade', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName)
+    {
+        $userName = Auth::user()?->name ?? 'مستخدم غير معروف';
+
+        switch ($eventName) {
+            case 'created':
+                $activity->description = "تم إنشاء تسجيل جديد بواسطة: {$userName}";
+                break;
+            case 'updated':
+                $activity->description = "تم تعديل تسجيل الطالب بواسطة: {$userName}";
+                break;
+            case 'deleted':
+                $activity->description = "تم حذف تسجيل الطالب بواسطة: {$userName}";
+                break;
+        }
+
+        $activity->properties = $activity->properties->put('ip_address', request()->ip());
+        $activity->properties = $activity->properties->put('user_agent', request()->userAgent());
     }
 
     // Status Constants

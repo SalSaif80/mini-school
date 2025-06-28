@@ -8,9 +8,9 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
-
+use App\Http\Controllers\Auth\LoginController;
 // Custom Login Route
-Route::post('/custom-login', [App\Http\Controllers\Auth\CustomLoginController::class, 'login'])->name('custom.login');
+Route::post('/min-school-login', [LoginController::class, 'login'])->name('min-school-login');
 
 Route::middleware('auth')->prefix('dashboard-school')->group(function () {
     Route::get('/', function () {

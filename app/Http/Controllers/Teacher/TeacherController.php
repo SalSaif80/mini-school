@@ -73,10 +73,10 @@ class TeacherController extends Controller
             ]);
 
             // تسجيل النشاط
-            activity()
-                ->causedBy($teacher)
-                ->performedOn($enrollment->student)
-                ->log("تم تحديث درجة الطالب {$enrollment->student->name} في مادة {$enrollment->course->course_name}: {$finalGrade}%");
+            // activity()
+            //     ->causedBy($teacher)
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم تحديث درجة الطالب {$enrollment->student->name} في مادة {$enrollment->course->course_name}: {$finalGrade}%");
 
             return back()->with('success', 'تم تحديث الدرجة بنجاح');
         } catch (\Throwable $th) {
@@ -101,10 +101,10 @@ class TeacherController extends Controller
             }
 
             // تسجيل النشاط
-            activity()
-                ->causedBy($teacher)
-                ->performedOn($enrollment->student)
-                ->log("تم تحميل ملف اختبار الطالب {$enrollment->student->name} في مادة {$enrollment->course->course_name}");
+            // activity()
+            //     ->causedBy($teacher)
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم تحميل ملف اختبار الطالب {$enrollment->student->name} في مادة {$enrollment->course->course_name}");
 
             // تحميل الملف
             $filePath = Storage::disk('public')->path($enrollment->exam_file_path);
@@ -133,10 +133,10 @@ class TeacherController extends Controller
             }
 
             // تسجيل النشاط
-            activity()
-                ->causedBy($teacher)
-                ->performedOn($enrollment->student)
-                ->log("تم عرض ملف اختبار الطالب {$enrollment->student->name} في مادة {$enrollment->course->course_name}");
+            // activity()
+            //     ->causedBy($teacher)
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم عرض ملف اختبار الطالب {$enrollment->student->name} في مادة {$enrollment->course->course_name}");
 
             // عرض الملف في المتصفح
             $filePath = Storage::disk('public')->path($enrollment->exam_file_path);

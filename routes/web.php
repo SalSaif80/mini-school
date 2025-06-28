@@ -9,10 +9,11 @@ use App\Http\Controllers\Teacher\TeacherController;
 use App\Http\Controllers\Student\StudentController;
 use App\Helpers\UserRedirectHelper;
 
-// Public routes
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+// // Public routes
+// Route::get('/', function () {
+//     return redirect()->route('login');
+// });
+
 
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

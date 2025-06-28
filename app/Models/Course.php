@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Auth;
 
 class Course extends Model
 {
@@ -27,13 +29,34 @@ class Course extends Model
         ];
     }
 
-    // Activity Log Configuration
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->logOnly(['course_name', 'teacher_id', 'schedule_date', 'room_number'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName)
+    {
+        $userName = Auth::user()?->name ?? 'مستخدم غير معروف';
+
+        switch ($eventName) {
+            case 'created':
+                $activity->description = "تم إنشاء كورس جديد بواسطة: {$userName}";
+                break;
+
+            case 'updated':
+                $activity->description = "تم تعديل بيانات الكورس بواسطة: {$userName}";
+                break;
+
+            case 'deleted':
+                $activity->description = "تم حذف الكورس بواسطة: {$userName}";
+                break;
+        }
+
+        $activity->properties = $activity->properties->put('ip_address', request()->ip());
+        $activity->properties = $activity->properties->put('user_agent', request()->userAgent());
     }
 
     /**

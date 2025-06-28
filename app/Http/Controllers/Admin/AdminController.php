@@ -72,10 +72,10 @@ class AdminController extends Controller
             // تعيين الـ role المناسب
             $user->assignRole($request->user_type);
 
-            // تسجيل النشاط
-            activity()
-                ->causedBy(Auth::user())
-                ->log('تم إنشاء مستخدم جديد: ' . $user->name);
+            // // تسجيل النشاط
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('تم إنشاء مستخدم جديد: ' . $user->name);
 
             return redirect()->route('admin.users')
                 ->with('success', 'تم إنشاء المستخدم بنجاح');
@@ -139,9 +139,9 @@ class AdminController extends Controller
             $user->syncRoles([$request->user_type]);
 
             // تسجيل النشاط
-            activity()
-                ->causedBy(Auth::user())
-                ->log('تم تحديث بيانات المستخدم: ' . $user->name);
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('تم تحديث بيانات المستخدم: ' . $user->name);
 
             return redirect()->route('admin.users')
                 ->with('success', 'تم تحديث المستخدم بنجاح');
@@ -165,9 +165,9 @@ class AdminController extends Controller
             $user->delete();
 
             // تسجيل النشاط
-            activity()
-                ->causedBy(Auth::user())
-                ->log('تم حذف المستخدم: ' . $userName);
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('تم حذف المستخدم: ' . $userName);
 
             return redirect()->route('admin.users')
                 ->with('success', 'تم حذف المستخدم بنجاح');
@@ -205,9 +205,11 @@ class AdminController extends Controller
         try {
             $course = Course::create($request->validated());
 
-            activity()
-                ->causedBy(Auth::user())
-                ->log('تم إنشاء كورس جديد: ' . $course->course_name);
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('تم إنشاء كورس جديد: ' . $course->course_name);
+
+
 
             return redirect()->route('admin.courses')
                 ->with('success', 'تم إنشاء الكورس بنجاح');
@@ -254,9 +256,9 @@ class AdminController extends Controller
 
             $course->update($request->validated());
 
-            activity()
-                ->causedBy(Auth::user())
-                ->log('تم تحديث الكورس: ' . $course->course_name);
+                // activity()
+                //     ->causedBy(Auth::user())
+                //     ->log('تم تحديث الكورس: ' . $course->course_name);
 
             return redirect()->route('admin.courses')
                 ->with('success', 'تم تحديث الكورس بنجاح');
@@ -275,9 +277,9 @@ class AdminController extends Controller
             $course->enrollments()->delete();
             $course->delete();
 
-            activity()
-                ->causedBy(Auth::user())
-                ->log('تم حذف الكورس: ' . $courseName);
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('تم حذف الكورس: ' . $courseName);
 
             return redirect()->route('admin.courses')
                 ->with('success', 'تم حذف الكورس بنجاح');
@@ -369,10 +371,10 @@ class AdminController extends Controller
                 'status' => Enrollment::STATUS_ACTIVE,
             ]);
 
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($student)
-                ->log("تم تسجيل الطالب {$student->name} في كورس {$course->course_name}");
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($student)
+            //     ->log("تم تسجيل الطالب {$student->name} في كورس {$course->course_name}");
 
             return redirect()->route('admin.enrollments')
                 ->with('success', "تم تسجيل الطالب {$student->name} في كورس {$course->course_name} بنجاح");
@@ -440,10 +442,10 @@ class AdminController extends Controller
             $newStudentData = User::find($request->student_id);
             $newCourseData = Course::find($request->course_id);
 
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($newStudentData)
-                ->log("تم تحديث تسجيل الطالب {$newStudentData->name} في كورس {$newCourseData->course_name}");
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($newStudentData)
+            //     ->log("تم تحديث تسجيل الطالب {$newStudentData->name} في كورس {$newCourseData->course_name}");
 
             return redirect()->route('admin.enrollments')
                 ->with('success', 'تم تحديث التسجيل بنجاح');
@@ -460,10 +462,10 @@ class AdminController extends Controller
             $courseName = $enrollment->course->course_name;
             $enrollment->delete();
 
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($enrollment->student)
-                ->log("تم حذف تسجيل الطالب {$userName} من كورس {$courseName}");
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم حذف تسجيل الطالب {$userName} من كورس {$courseName}");
 
             return redirect()->route('admin.enrollments')
                 ->with('success', 'تم حذف التسجيل بنجاح');

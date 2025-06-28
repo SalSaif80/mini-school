@@ -10,6 +10,8 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -72,9 +74,6 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Activity Log Configuration
-     */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -83,28 +82,14 @@ class User extends Authenticatable
             ->dontSubmitEmptyLogs();
     }
 
-    /**
-     * Check if user is admin
-     */
-    public function isAdmin(): bool
+    public function tapActivity(Activity $activity, string $eventName)
     {
-        return $this->user_type === self::ADMIN;
-    }
+        if ($eventName === 'updated') {
+            $activity->description = 'تم تعديل بيانات المستخدم بواسطة: ' . Auth::user()?->name;
+        }
 
-    /**
-     * Check if user is teacher
-     */
-    public function isTeacher(): bool
-    {
-        return $this->user_type === self::TEACHER;
-    }
-
-    /**
-     * Check if user is student
-     */
-    public function isStudent(): bool
-    {
-        return $this->user_type === self::STUDENT;
+        $activity->properties = $activity->properties->put('ip_address', request()->ip());
+        $activity->properties = $activity->properties->put('user_agent', request()->userAgent());
     }
 
     /**
@@ -146,4 +131,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Enrollment::class, 'student_id');
     }
-}
+    }

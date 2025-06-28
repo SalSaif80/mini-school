@@ -75,10 +75,10 @@ class StudentController extends Controller
             ]);
 
             // تسجيل النشاط
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($enrollment->student)
-                ->log("تم رفع ملف الاختبار لمادة {$enrollment->course->course_name}");
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم رفع ملف الاختبار لمادة {$enrollment->course->course_name}");
 
             return back()->with('success', 'تم رفع ملف الاختبار بنجاح');
         } catch (\Throwable $th) {
@@ -104,10 +104,10 @@ class StudentController extends Controller
                 'exam_file_path' => null
             ]);
 
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($enrollment->student)
-                ->log("تم حذف ملف الاختبار لمادة {$enrollment->course->course_name}");
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم حذف ملف الاختبار لمادة {$enrollment->course->course_name}");
 
             return back()->with('success', 'تم حذف ملف الاختبار بنجاح');
         } catch (\Throwable $th) {
@@ -154,10 +154,10 @@ class StudentController extends Controller
             ]);
 
             // تسجيل النشاط
-            activity()
-                ->causedBy($student)
-                ->performedOn($enrollment->student)
-                ->log("تم التسجيل في كورس: {$course->course_name}");
+            // activity()
+            //     ->causedBy($student)
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم التسجيل في كورس: {$course->course_name}");
 
             return redirect()->route('student.courses')
                 ->with('success', "تم تسجيلك في كورس {$course->course_name} بنجاح");
@@ -187,10 +187,10 @@ class StudentController extends Controller
             ]);
 
             // تسجيل النشاط
-            activity()
-                ->causedBy($student)
-                ->performedOn($enrollment->student)
-                ->log("تم الانسحاب من كورس: {$courseName}");
+            // activity()
+            //     ->causedBy($student)
+            //     ->performedOn($enrollment->student)
+            //     ->log("تم الانسحاب من كورس: {$courseName}");
 
             return back()->with('success', "تم انسحابك من كورس {$courseName}");
         } catch (\Throwable $th) {

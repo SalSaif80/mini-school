@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
-class CustomLoginController extends Controller
+class LoginController extends Controller
 {
     /**
      * Handle the custom login request
@@ -88,11 +88,11 @@ class CustomLoginController extends Controller
     {
         switch ($userType) {
             case 'student':
-                return 'طالب';
+                return User::STUDENT;
             case 'teacher':
-                return 'معلم';
+                return User::TEACHER;
             case 'admin':
-                return 'إدارة/موظف';
+                return User::ADMIN;
             default:
                 return 'غير محدد';
         }

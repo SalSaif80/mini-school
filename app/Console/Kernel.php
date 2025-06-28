@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // Send logs to LogVault every hour
-        $schedule->command('logs:send-to-vault')->hourly();
+        // $schedule->command('logs:send-to-vault')->hourly();
 
     }
 
