@@ -31,10 +31,10 @@ class SendLogsToLogVault extends Command
     public function handle()
     {
         // التحقق من الإعدادات
-        if (!env('LOG_API_URL') || !env('LOG_API_TOKEN')) {
-            $this->error('أضف LOG_API_URL و LOG_API_TOKEN في .env');
-            return 1;
-        }
+        // if (!env('LOG_API_URL') || !env('LOG_API_TOKEN')) {
+        //     $this->error('أضف LOG_API_URL و LOG_API_TOKEN في .env');
+        //     return 1;
+        // }
 
         // اختبار الاتصال
         if ($this->option('test')) {
