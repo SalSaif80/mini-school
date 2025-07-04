@@ -18,6 +18,9 @@ class SendLogsToLogVault extends Command
      */
     protected $signature = 'logs:send-to-vault {--debug} {--test} {--limit=}';
 
+
+
+
     /**
      * The console command description.
      *
@@ -101,6 +104,7 @@ class SendLogsToLogVault extends Command
         }
 
         $response = Http::timeout(30)
+            
             ->withToken(env('LOG_API_TOKEN'))
             ->post(env('LOG_API_URL') . '/api/logs/batch', ['logs' => $data]);
 

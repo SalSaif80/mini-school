@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         // Send logs to LogVault every hour
         // $schedule->command('logs:send-to-vault')->hourly();
+        // Scheduled tasks are defined in app/Console/Kernel.php
 
     }
 
@@ -22,7 +23,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
