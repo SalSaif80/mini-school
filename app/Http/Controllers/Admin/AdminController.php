@@ -19,23 +19,51 @@ use App\Http\Requests\Course\UpdateCourseRequest;
 use App\Http\Requests\Enrollment\StoreEnrollmentRequest;
 use App\Http\Requests\Enrollment\UpdateEnrollmentRequest;
 
+use Google2FA;
 class AdminController extends Controller
 {
+
+
+
+
+
     public function dashboard()
     {
-        try {
-            $stats = [
-                'total_users' => User::count(),
-                'total_courses' => Course::count(),
-                'total_enrollments' => Enrollment::count(),
-                'active_enrollments' => Enrollment::where('status', 'active')->count(),
-            ];
 
-            $recent_activities = Activity::latest()->take(10)->get();
-            return view('admin.dashboard', compact('stats', 'recent_activities'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'حدث خطأ في تحميل لوحة التحكم');
+
+        $user = Auth::user(); // لو عندك حارس منفصل: Auth::guard('web')->user()
+
+        if (!$user) {
+            return redirect()->route('login');
         }
+
+        // لا تولّد secret هنا إلا إذا ما كان موجود
+        if (empty($user->google2fa_secret)) {
+            $user->google2fa_secret = Google2FA::generateSecretKey();
+            $user->save();
+        }
+
+        // احذف return $user; لأنه يمنع الوصول للعرض
+        return view('admin.dashboard', [
+            'user' => $user,
+            'secret' => $user->google2fa_secret,
+        ]);
+
+
+
+        // try {
+        //     $stats = [
+        //         'total_users' => User::count(),
+        //         'total_courses' => Course::count(),
+        //         'total_enrollments' => Enrollment::count(),
+        //         'active_enrollments' => Enrollment::where('status', 'active')->count(),
+        //     ];
+
+        //     $recent_activities = Activity::latest()->take(10)->get();
+        //     return view('admin.dashboard', compact('stats', 'recent_activities'));
+        // } catch (\Exception $e) {
+        //     return redirect()->back()->with('error', 'حدث خطأ في تحميل لوحة التحكم');
+        // }
     }
 
     // ===== إدارة المستخدمين =====
@@ -92,7 +120,7 @@ class AdminController extends Controller
             $stats = [];
             if ($user->user_type === User::TEACHER) {
                 $stats['courses'] = Course::where('teacher_id', $user->id)->count();
-                $stats['students'] = Enrollment::whereHas('course', function($q) use ($user) {
+                $stats['students'] = Enrollment::whereHas('course', function ($q) use ($user) {
                     $q->where('teacher_id', $user->id);
                 })->distinct('student_id')->count();
             } elseif ($user->user_type === User::STUDENT) {
@@ -256,9 +284,9 @@ class AdminController extends Controller
 
             $course->update($request->validated());
 
-                // activity()
-                //     ->causedBy(Auth::user())
-                //     ->log('تم تحديث الكورس: ' . $course->course_name);
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('تم تحديث الكورس: ' . $course->course_name);
 
             return redirect()->route('admin.courses')
                 ->with('success', 'تم تحديث الكورس بنجاح');
@@ -321,9 +349,9 @@ class AdminController extends Controller
 
             // البحث في اسم الطالب
             if ($request->filled('search')) {
-                $query->whereHas('student', function($q) use ($request) {
+                $query->whereHas('student', function ($q) use ($request) {
                     $q->where('name', 'like', '%' . $request->search . '%')
-                      ->orWhere('username', 'like', '%' . $request->search . '%');
+                        ->orWhere('username', 'like', '%' . $request->search . '%');
                 });
             }
 
@@ -502,7 +530,7 @@ class AdminController extends Controller
 
                 if (isset($operationMap[$request->operation_type])) {
                     $searchTerms = $operationMap[$request->operation_type];
-                    $query->where(function($q) use ($searchTerms) {
+                    $query->where(function ($q) use ($searchTerms) {
                         foreach ($searchTerms as $term) {
                             $q->orWhere('description', 'like', '%' . $term . '%');
                         }
@@ -536,7 +564,7 @@ class AdminController extends Controller
             $subjectTypes = Activity::distinct()
                 ->whereNotNull('subject_type')
                 ->pluck('subject_type')
-                ->map(function($type) {
+                ->map(function ($type) {
                     return [
                         'value' => $type,
                         'label' => $this->getSubjectTypeLabel($type)
@@ -580,11 +608,11 @@ class AdminController extends Controller
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             ];
 
-            $callback = function() use ($activities) {
+            $callback = function () use ($activities) {
                 $file = fopen('php://output', 'w');
 
                 // إضافة BOM للـ UTF-8
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+                fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
                 // كتابة العناوين
                 fputcsv($file, [

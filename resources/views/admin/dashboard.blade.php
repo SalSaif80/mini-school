@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('title', 'لوحة تحكم الإدارة')
 
@@ -110,4 +110,14 @@
             @endif
         </div>
     </div>
-@endsection
+@endsection --}}
+
+<form method="POST" action="{{ route('2fa.enable') }}">
+    @csrf
+    <div class="mb-3 text-center">
+        <img src="{{ $qr }}" alt="Scan QR">
+    </div>
+    <label class="form-label">رمز التحقق من التطبيق</label>
+    <input name="one_time_password" inputmode="numeric" pattern="\d{6}" class="form-control" required>
+    <button class="btn btn-primary mt-3">تفعيل</button>
+</form>

@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => Spatie\Permission\Middleware\PermissionMiddleware::class,
+            '2fa' => \PragmaRX\Google2FALaravel\Middleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

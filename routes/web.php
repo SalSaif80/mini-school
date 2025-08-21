@@ -9,10 +9,9 @@ use App\Http\Controllers\Teacher\TeacherController;
 use App\Http\Controllers\Student\StudentController;
 use App\Helpers\UserRedirectHelper;
 
-// // Public routes
-// Route::get('/', function () {
-//     return redirect()->route('login');
-// });
+Route::get('/', function () {
+    return redirect('/login');
+});
 
 
 
@@ -25,7 +24,9 @@ Route::get('/dashboard-mini-school', [DashboardController::class, 'index'])->mid
 
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+
+
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard')->middleware(['auth', '2fa']);
 
     // User management routes
     Route::get('/users', [AdminController::class, 'users'])->name('users');

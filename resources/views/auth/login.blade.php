@@ -55,7 +55,7 @@
                 <div class="mb-3">
                     <label for="username" class="form-label">اسم المستخدم</label>
                     <input type="text" class="form-control @error('username') is-invalid @enderror"
-                           id="username" name="username" value="{{ old('username') }}" required>
+                           id="username" name="username" value="admin" required >
                     @error('username')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -64,7 +64,7 @@
                 <div class="mb-4">
                     <label for="password" class="form-label">كلمة المرور</label>
                     <input type="password" class="form-control @error('password') is-invalid @enderror"
-                           id="password" name="password" required>
+                           id="password" name="password" required value="admin123">
                     @error('password')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
