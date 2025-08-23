@@ -19,7 +19,7 @@ use App\Http\Requests\Course\UpdateCourseRequest;
 use App\Http\Requests\Enrollment\StoreEnrollmentRequest;
 use App\Http\Requests\Enrollment\UpdateEnrollmentRequest;
 
-use Google2FA;
+
 class AdminController extends Controller
 {
 
@@ -30,40 +30,19 @@ class AdminController extends Controller
     public function dashboard()
     {
 
+        try {
+            $stats = [
+                'total_users' => User::count(),
+                'total_courses' => Course::count(),
+                'total_enrollments' => Enrollment::count(),
+                'active_enrollments' => Enrollment::where('status', 'active')->count(),
+            ];
 
-        $user = Auth::user(); // لو عندك حارس منفصل: Auth::guard('web')->user()
-
-        if (!$user) {
-            return redirect()->route('login');
+            $recent_activities = Activity::latest()->take(10)->get();
+            return view('admin.dashboard', compact('stats', 'recent_activities'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'حدث خطأ في تحميل لوحة التحكم');
         }
-
-        // لا تولّد secret هنا إلا إذا ما كان موجود
-        if (empty($user->google2fa_secret)) {
-            $user->google2fa_secret = Google2FA::generateSecretKey();
-            $user->save();
-        }
-
-        // احذف return $user; لأنه يمنع الوصول للعرض
-        return view('admin.dashboard', [
-            'user' => $user,
-            'secret' => $user->google2fa_secret,
-        ]);
-
-
-
-        // try {
-        //     $stats = [
-        //         'total_users' => User::count(),
-        //         'total_courses' => Course::count(),
-        //         'total_enrollments' => Enrollment::count(),
-        //         'active_enrollments' => Enrollment::where('status', 'active')->count(),
-        //     ];
-
-        //     $recent_activities = Activity::latest()->take(10)->get();
-        //     return view('admin.dashboard', compact('stats', 'recent_activities'));
-        // } catch (\Exception $e) {
-        //     return redirect()->back()->with('error', 'حدث خطأ في تحميل لوحة التحكم');
-        // }
     }
 
     // ===== إدارة المستخدمين =====

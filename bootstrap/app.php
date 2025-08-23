@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '2fa' => \PragmaRX\Google2FALaravel\Middleware::class,
         ]);
     })
+    
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })
